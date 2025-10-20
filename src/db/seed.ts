@@ -1,12 +1,15 @@
+"use server";
+
 // src/db/seed.ts
 
 import { defineScript } from "rwsdk/worker";
 import { drizzle } from "drizzle-orm/d1";
 import { users, type Task, tasks } from "./schema";
+import { env as WorkerEnv } from "cloudflare:workers";
 
-export default defineScript(async ({ env }) => {
+export const seedData = async (env?: Env) => {
   try {
-    const db = drizzle(env.DB);
+    const db = drizzle(env?.DB ?? WorkerEnv.DB);
     await db.delete(users);
     await db.delete(tasks);
 
@@ -49,7 +52,17 @@ export default defineScript(async ({ env }) => {
 
     console.log("🌱 Finished seeding");
 
-    return Response.json(result);
+    return result;
+  } catch (error) {
+    console.error("Error seeding database:", error);
+    throw error;
+  }
+};
+
+export default defineScript(async ({ env }) => {
+  try {
+    await seedData(env);
+    return Response.json(true);
   } catch (error) {
     console.error("Error seeding database:", error);
     return Response.json({

@@ -8,9 +8,11 @@ import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import { taskRoutes } from "./features/tasks/tasksRoutes";
 import TaskListPage from "./features/tasks/pages/TaskListPage";
+import { type DB, db } from "./db";
+import { seedData } from "./db/seed";
 
 export interface Env {
-  DB: D1Database;
+  DB: DB;
 }
 
 export type AppContext = {
@@ -20,6 +22,10 @@ export type AppContext = {
 
 export default defineApp([
   setCommonHeaders(),
+  route("/api/seed", async () => {
+    await seedData(env);
+    return Response.json({ success: true });
+  }),
   prefix("/api/v1/tasks", taskRoutes),
   render(Document, [
     route("/", async () => {
