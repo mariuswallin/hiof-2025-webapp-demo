@@ -8,11 +8,12 @@ import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import { taskRoutes } from "./features/tasks/tasksRoutes";
 import TaskListPage from "./features/tasks/pages/TaskListPage";
-import { type DB, db } from "./db";
+import { type DB } from "./db";
 import { seedData } from "./db/seed";
 import TaskDetailRSC from "./features/tasks/pages/TaskDetailRSC";
 import TaskDetailOld from "./features/tasks/pages/TaskDetailOld";
 import TaskEdit from "./features/tasks/pages/TaskEdit";
+import TaskEditOld from "./features/tasks/pages/TaskEditOld";
 import { MainLayout } from "./components/Layout";
 
 export interface Env {
@@ -24,25 +25,27 @@ export type AppContext = {
   authUrl: string;
 };
 
-const fakeSetUserContext = async (ctx: RequestInfo) => {
-  ctx.ctx.user = {
+const fakeSetUserContext = async (context: RequestInfo) => {
+  const { ctx } = context;
+  ctx.user = {
     id: 1,
     name: "Test User",
     email: "test@example.com",
   };
-  ctx.ctx.user = undefined;
+  ctx.user = undefined;
 };
 
 export default defineApp([
   setCommonHeaders(),
-  fakeSetUserContext,
+  fakeSetUserContext, // Run for all routes
   route("/api/seed", async () => {
     await seedData(env);
     return Response.json({ success: true });
-  }),
-  prefix("/api/v1/tasks", taskRoutes),
+  }), // Seed database route (for windows)
+  prefix("/api/v1/tasks", taskRoutes), // API routes with controllers, services etc.
   render(Document, [
     route("/", async () => {
+      // Simple example showing how to use the db directly in the route
       const userResult = await drizzle(env.DB).select().from(users);
       return (
         <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
@@ -58,14 +61,17 @@ export default defineApp([
         if (!loggedIn) {
           return new Response("Unauthorized", { status: 401 });
         }
-      },
+      }, // Run for all /tasks routes
       layout(MainLayout, [
-        route("/", TaskListPage),
-        route("/rsc/:taskId", TaskDetailRSC),
+        route("/", TaskListPage), // Page using RSC
+        route("/rsc/:taskId", TaskDetailRSC), // Page using RSC with params
         route("/old/:taskId", ({ params }) => (
-          <TaskDetailOld params={params} />
+          <TaskDetailOld params={params} /> // Page using regular rendering with params
         )),
-        route("/:taskId/edit", TaskEdit),
+        route("/:taskId/edit", TaskEdit), //  Page using server actions with params
+        route("/old/:taskId/edit", ({ params }) => (
+          <TaskEditOld params={params} />
+        )), //  Page using regular pattern for update
       ]),
     ]),
   ]),

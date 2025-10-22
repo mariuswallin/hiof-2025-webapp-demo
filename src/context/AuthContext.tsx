@@ -3,9 +3,7 @@
 import type { User } from "@/db/schema";
 import { createContext } from "react";
 
-export const AuthContext = createContext<{ user: User | undefined }>({
-  user: undefined,
-});
+export const AuthContext = createContext<User | undefined>(undefined);
 
 export function AuthProvider({
   user,
@@ -14,5 +12,5 @@ export function AuthProvider({
   user: User | undefined;
   children: React.ReactNode;
 }) {
-  return <AuthContext value={{ user }}>{children}</AuthContext>;
+  return <AuthContext value={user}>{children}</AuthContext>;
 }

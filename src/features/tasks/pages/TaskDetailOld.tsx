@@ -11,22 +11,21 @@ export default function TaskDetailOld({
 }) {
   const user = useAuth();
   const { taskId } = params;
-
   const [task, setTask] = useState<Task | null>(null);
 
   useEffect(() => {
-    try {
-      const fetchTask = async () => {
+    const fetchTask = async () => {
+      try {
         const response = await fetch(`/api/v1/tasks/${taskId}`);
-        const fetchedTask = await response.json();
-        console.log(fetchedTask);
+        const fetchedTask = (await response.json()) as { data: Task };
         setTask(fetchedTask.data);
-      };
-      fetchTask();
-    } catch (error) {
-      console.error("Error fetching task:", error);
-    }
+      } catch (error) {
+        console.error("Error fetching task:", error);
+      }
+    };
+    fetchTask();
   }, [taskId]);
+
   return (
     <div>
       {JSON.stringify(task)}

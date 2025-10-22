@@ -3,8 +3,10 @@
 import type { Task } from "@/db/schema";
 import { useActionState } from "react";
 import { editTaskAction } from "../actions/editTaskAction";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function TaskEditAction({ task }: { task: Task }) {
+  const user = useAuth();
   const [state, formAction, isPending] = useActionState(editTaskAction, {
     success: false,
     error: {
@@ -28,8 +30,6 @@ export default function TaskEditAction({ task }: { task: Task }) {
     );
   }
 
-  console.log("Current state:", state);
-
   return (
     <section>
       <h2>Edit {JSON.stringify(state)}</h2>
@@ -49,6 +49,7 @@ export default function TaskEditAction({ task }: { task: Task }) {
         <input type="hidden" name="id" value={task.id} />
         <button type="submit">Save</button>
       </form>
+      <p>User: {JSON.stringify(user)}</p>
     </section>
   );
 }
