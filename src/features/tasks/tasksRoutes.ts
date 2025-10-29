@@ -1,6 +1,13 @@
 import { route } from "rwsdk/router";
 import { tasksController } from "./tasksController";
 
+function isAdmin(ctx: any) {
+  const user = ctx.user;
+  if (!user || !user.isAdmin) {
+    return new Response("Forbidden", { status: 403 });
+  }
+}
+
 export const taskRoutes = [
   route("/", async (ctx) => {
     const method = ctx.request.method.toLowerCase();
@@ -16,6 +23,7 @@ export const taskRoutes = [
     }
   }),
   route("/:id", (ctx) => {
+    // isAdmin(ctx);
     const method = ctx.request.method.toLowerCase();
     switch (method) {
       // GET /api/v1/tasks/:id

@@ -26,23 +26,56 @@ export type AppContext = {
 };
 
 const fakeSetUserContext = async (context: RequestInfo) => {
+  // Henter ut brukerinfo fra request, f.eks. fra en JWT token i headers
+  // Eller fra cookies, session osv.
+  // Kaller gjerne databasen for å sjekke at brukeren fortsatt har aktivt status e.l
   const { ctx } = context;
   ctx.user = {
     id: 1,
     name: "Test User",
     email: "test@example.com",
+    isAdmin: false,
   };
-  ctx.user = undefined;
+
+  // Parse JWT token from Authorization header
+
+  // if (!ctx.user) {
+  //   return new Response("Unauthorized", { status: 401 });
+  // }
+  // if(ctx.user.status === "banned") {
+  //   return new Response("Forbidden", { status: 403 });
+  // }
+  //ctx.user = undefined;
 };
 
 export default defineApp([
   setCommonHeaders(),
   fakeSetUserContext, // Run for all routes
+
   route("/api/seed", async () => {
     await seedData(env);
     return Response.json({ success: true });
   }), // Seed database route (for windows)
   prefix("/api/v1/tasks", taskRoutes), // API routes with controllers, services etc.
+  route("/test/*", (ctx) => {
+    console.log("Test route hit:", ctx.request.url, ctx.params);
+    const params = ctx.params.$0.split("/");
+    const isApiRoute = params[0] === "api";
+    if (isApiRoute) {
+      return Response.json({ message: "This is a test API route", params });
+    }
+    if (params.length === 1) {
+      return new Response(`This is a test route with param: ${params[0]}`);
+    }
+    if (params.length === 2) {
+      const firstParam = "param1-value";
+      const secondParam = "param2-value";
+      return new Response(
+        `This is a test route with params: ${firstParam}, ${secondParam}`
+      );
+    }
+    return new Response("This is a test route response");
+  }), // Example of a simple test route
   render(Document, [
     route("/", async () => {
       // Simple example showing how to use the db directly in the route

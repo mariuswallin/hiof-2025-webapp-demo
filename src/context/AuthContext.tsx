@@ -12,5 +12,15 @@ export function AuthProvider({
   user: User | undefined;
   children: React.ReactNode;
 }) {
-  return <AuthContext value={user}>{children}</AuthContext>;
+  const login = (userData: User) => {
+    // Implement login logic here
+  };
+
+  const logout = () => {
+    // Implement logout logic here
+  };
+
+  return (
+    <AuthContext value={{ ...user, login, logout }}>{children}</AuthContext>
+  );
 }
